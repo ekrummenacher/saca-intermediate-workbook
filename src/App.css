@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  font-family: 'Play', sans-serif;
 }
 
 .App-header {
@@ -7,6 +8,14 @@
   height: 150px;
   padding: 20px;
   color: white;
+  background: url("http://img10.deviantart.net/f20c/i/2014/053/7/6/free_space_galaxy_texture_by_lyshastra-d77gh2y.jpg");
+}
+
+.header-title {
+  font-size: 2.9em;
+  padding-top: 10px;
+  font-family: 'Play', sans-serif;
+  font-weight: bolder;
 }
 
 .App-intro {
@@ -29,15 +38,36 @@
 .App-edit-title {
   text-align: center;
   color: white;
+  font-weight: bolder;
+}
+
+.hideinput {
+  display: none;
 }
 
 .submit-button-edit {
   background: darkgrey;
 }
 
+.inventTable {
+  display: block;
+  margin-left: 50px;
+  margin-right: 50px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  /*border: 1px solid #000;*/
+}
+
+button {
+  border-radius: 5px;
+  margin-right: 10px;
+  
+}
+
 button:hover {
   background: lightgrey;
   color: #42434c;
+  border-radius: 5px;
 }
 
 @keyframes App-logo-spin {

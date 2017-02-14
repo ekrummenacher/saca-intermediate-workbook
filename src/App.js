@@ -23,8 +23,14 @@ class App extends Component {
     this.state = {
       inventory: [],
       submitted: false,
-      edit: false
+      edit: false,
+      editFields: [],
+      typed: ''
     }
+
+    this._editFirebaseData = this._editFirebaseData.bind(this);
+    this._setFirebaseDataEditTable = this._setFirebaseDataEditTable.bind(this);
+    this._onSubmit = this.onSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -46,24 +52,68 @@ class App extends Component {
     });
   }
 
+  handleChange(event) {
+    this.setState({ typed: event.target.value });
+  }
+
+  _setFirebaseDataEditTable(event) {
+    event.preventDefault();
+
+    const entryId = event.target.value;
+
+    this.setState({
+      edit: true,
+      editUUID: entryId,
+      editFields: []
+    });
+
+    //We use this when we go into the firebase database since we loose 'this'
+    var self = this;
+
+    firebase.database().ref().child('inventoryApp').orderByChild('uuid').on('value', (snapshot) => {
+      snapshot.forEach(function (child) {
+        var value = child.val();
+        var name = value.inventory.name;
+        var quantity = value.inventory.quantity;
+        var description = value.inventory.description;
+        var uuid = value.inventory.uuid;
+
+        var editFields = {};
+
+        if (uuid === entryId) {
+          editFields['name'] = name;
+          editFields['quantity'] = quantity;
+          editFields['description'] = description;
+          editFields['uuid'] = uuid;
+
+          self.setState({ editFields : editFields });
+        }
+      });
+    })
+  }
+
   _editFirebaseData(event) {
     event.preventDefault();
-    this.setState({ edit: true });
-    var uuid = event.target.value;
+
+    // var uuid = event.target.value;
+
     const newDetails = {};
-  
-
     event.target.childNodes.forEach(function (e) {
-      if(e.tagName === 'INPUT') {
+      if (e.tagName === 'INPUT') {
         newDetails[e.name] = e.value
-      } else {
-        e.value = null
       }
-    })
+    });
 
-    firebase.database().ref().child('inventoryApp/' + uuid).update({ inventory: newDetails });
+    var uuid = newDetails['uuid'];
+    var self = this;
+
+    firebase.database().ref().child('/inventoryApp/' + uuid).update({ inventory: newDetails });
 
     this._loadFirebaseData();
+
+    this.setState({
+      edit: false
+    });
   }
 
   _handleClick(event) {
@@ -81,30 +131,31 @@ class App extends Component {
     var inputForm;
     var table;
     var rows;
-    
+
     //Assign a default value
     var output = (<div></div>);
     console.log(this.state.edit);
     if (this.state.edit) {
-        output = (
-          <div className="App-edit">
-            <div className="App-edit-title">
-              <h2>Please enter inventory edit below:</h2>
-            </div>
-            <form onSubmit={this.onSubmit.bind(this)}>
-              <input type="text" placeholder="Enter Name Edit..." name="name" />
-              <input type="text" placeholder="Enter Description Edit..." name="description"/>
-              <input type="text" placeholder="Enter Quantity Edit..." name="quantity"/>  
-              <button type="submit" className="submit-button-edit">Submit</button>      
-            </form>
+      output = (
+        <div className="App-edit">
+          <div className="App-edit-title">
+            <h2>Please enter inventory edit below:</h2>
           </div>
-        );
+          <form onSubmit={this._editFirebaseData.bind(this)}>
+            <input type="text" value={this.state.editFields.name} placeholder="Enter Name Edit..." onChange={this.handleChange} name="name" />
+            <input type="text" value={this.state.editFields.description} placeholder="Enter Description Edit..." onChange={this.handleChange} name="description" />
+            <input type="text" value={this.state.editFields.quantity} placeholder="Enter Quantity Edit..." onChange={this.handleChange} name="quantity" />
+            <input type="text" className="hideinput" value={this.state.editFields.uuid} name="uuid" />
+            <button type="submit" className="submit-button-edit">Submit</button>
+          </form>
+        </div>
+      );
 
     } else {
 
 
       inputForm = <span>
-        <h2>Please enter your inventory Item</h2>
+        <h2>Please enter your out-of-this-world inventory item</h2>
         <form onSubmit={this.onSubmit.bind(this)} id="inventForm">
           <input type="text" placeholder="Enter name..." name="name" />
           <input type="text" placeholder="Enter description..." name="description" />
@@ -123,7 +174,10 @@ class App extends Component {
               <th> {item[s].inventory.name} </th>
               <th> {item[s].inventory.description} </th>
               <th> {item[s].inventory.quantity} </th>
-              <th><button value={item[s].inventory.uuid} onClick={self._handleClick.bind(self)}>Delete</button> <button value={item[s].inventory.uuid} onClick={self._editFirebaseData.bind(self)}>Edit</button> </th>
+              <th>
+                <button value={item[s].inventory.uuid} onClick={self._handleClick.bind(self)}>Delete</button>
+                <button value={item[s].inventory.uuid} onClick={self._setFirebaseDataEditTable.bind(self)}>Edit</button>
+              </th>
             </tr>
           )
         });
@@ -132,7 +186,7 @@ class App extends Component {
 
 
       table = (
-        <span>
+        <span className="inventTable">
           <Table striped bordered condensed hover>
             <thead>
               <tr>
@@ -153,7 +207,7 @@ class App extends Component {
       output = (
         <div className="App">
           <div className="App-header">
-            <h2>Inventory App</h2>
+            <h2 className="header-title">Inventory Galaxy App</h2>
           </div>
           <div className="text-center">
             {inputForm}
@@ -162,10 +216,10 @@ class App extends Component {
           </div>
         </div>
       );
-      
+
     }
 
-    
+
     return output;
   }
 
