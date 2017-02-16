@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { Table } from 'react-bootstrap';
+import FormView from './components/FormView.js';
 
 var uuid = require('uuid');
 var firebase = require('firebase');
@@ -25,12 +26,15 @@ class App extends Component {
       submitted: false,
       edit: false,
       editFields: [],
-      typed: ''
+      typed: '',
+      change: []
     }
 
     this._editFirebaseData = this._editFirebaseData.bind(this);
     this._setFirebaseDataEditTable = this._setFirebaseDataEditTable.bind(this);
     this._onSubmit = this.onSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this._cancelEdit = this._cancelEdit.bind(this);
   }
 
   componentDidMount() {
@@ -52,8 +56,15 @@ class App extends Component {
     });
   }
 
+//event = <input type="text" value={this.state.editFields.name} placeholder="Enter Name Edit..." onChange={this.handleChange} name="name" />
   handleChange(event) {
-    this.setState({ typed: event.target.value });
+    var change = {};
+    change[event.target.name] = event.target.value;
+    this.setState({ editFields: change });
+  }
+
+  _cancelEdit(event) {
+    this.setState({ edit: false });
   }
 
   _setFirebaseDataEditTable(event) {
@@ -128,99 +139,12 @@ class App extends Component {
 
 
   render() {
-    var inputForm;
-    var table;
-    var rows;
 
-    //Assign a default value
-    var output = (<div></div>);
-    console.log(this.state.edit);
-    if (this.state.edit) {
-      output = (
-        <div className="App-edit">
-          <div className="App-edit-title">
-            <h2>Please enter inventory edit below:</h2>
-          </div>
-          <form onSubmit={this._editFirebaseData.bind(this)}>
-            <input type="text" value={this.state.editFields.name} placeholder="Enter Name Edit..." onChange={this.handleChange} name="name" />
-            <input type="text" value={this.state.editFields.description} placeholder="Enter Description Edit..." onChange={this.handleChange} name="description" />
-            <input type="text" value={this.state.editFields.quantity} placeholder="Enter Quantity Edit..." onChange={this.handleChange} name="quantity" />
-            <input type="text" className="hideinput" value={this.state.editFields.uuid} name="uuid" />
-            <button type="submit" className="submit-button-edit">Submit</button>
-          </form>
-        </div>
-      );
-
-    } else {
-
-
-      inputForm = <span>
-        <h2>Please enter your out-of-this-world inventory item</h2>
-        <form onSubmit={this.onSubmit.bind(this)} id="inventForm">
-          <input type="text" placeholder="Enter name..." name="name" />
-          <input type="text" placeholder="Enter description..." name="description" />
-          <input type="text" placeholder="Enter quantity..." name="quantity" />
-          <button type="submit">Submit</button>
-        </form>
-      </span>
-
-      // if (this.state.submitted && this.state.inventory.length) {
-      var self = this;
-      rows = this.state.inventory.map(function (item, index) {
-        return Object.keys(item).map(function (s) {
-
-          return (
-            <tr key={s}>
-              <th> {item[s].inventory.name} </th>
-              <th> {item[s].inventory.description} </th>
-              <th> {item[s].inventory.quantity} </th>
-              <th>
-                <button value={item[s].inventory.uuid} onClick={self._handleClick.bind(self)}>Delete</button>
-                <button value={item[s].inventory.uuid} onClick={self._setFirebaseDataEditTable.bind(self)}>Edit</button>
-              </th>
-            </tr>
-          )
-        });
-      });
-
-
-
-      table = (
-        <span className="inventTable">
-          <Table striped bordered condensed hover>
-            <thead>
-              <tr>
-                <th> Name </th>
-                <th> Description </th>
-                <th> Quantity </th>
-                <th> Actions </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows}
-            </tbody>
-          </Table>
-        </span>
-      )
-
-
-      output = (
-        <div className="App">
-          <div className="App-header">
-            <h2 className="header-title">Inventory Galaxy App</h2>
-          </div>
-          <div className="text-center">
-            {inputForm}
-            <br />
-            {table}
-          </div>
-        </div>
-      );
-
-    }
-
-
-    return output;
+    return (
+      <div>
+        <FormView data={this}/>
+      </div>
+    )
   }
 
   //adding our function that will handle our form submit
